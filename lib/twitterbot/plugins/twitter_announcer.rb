@@ -55,16 +55,20 @@ module TwitterBot
             end
           when 'status'
             status = announcing?(m.channel.name) ? 'Announcing new tweets.' : 'Not announcing.'
-            accounts = ''
-            @bot.config.twitmap.each do |chan, account|
+
+            accounts_str = ''
+            @bot.config.twitmap.each do |chan, accounts|
               next if chan != m.channel.name.downcase
 
-              accounts += "#{account}, "
+              accounts.each do |account|
+                accounts_str += "#{account}, "
+              end
             end
-            accounts.sub!(/, $/, '')
+            accounts_str.sub!(/, $/, '')
+            accounts_str = 'None!' unless accounts_str
 
             m.reply("Status for #{m.channel.name}: #{status}")
-            m.reply("Checking for the following Twitter Accounts: #{accounts}")
+            m.reply("Checking for the following Twitter Accounts: #{accounts_str}")
           else
             m.reply("Option [#{option}] not understood. Options: on, off, status")
         end
