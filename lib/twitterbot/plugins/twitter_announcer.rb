@@ -31,12 +31,12 @@ module TwitterBot
 
       match Regexp.new('tw(?:eet)?check ([a-z]+)$'), method: :announce
       def announce(m, option)
-        unless m.channel.opped?(m.user)
+        option.downcase!
+
+        if !m.channel.opped?(m.user) && option != 'status'
           m.user.notice('You are not authorized to use this command!')
           return
         end
-
-        option.downcase!
 
         case option
           when 'on'
