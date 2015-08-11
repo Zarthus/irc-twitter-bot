@@ -61,6 +61,10 @@ module TwitterBot
 
           c.twitter_accounts.uniq!
           c.channels.uniq!
+
+          if config['plugin']['twitter']['timer'] < 60
+            warn 'Please don\'t flood Twitter servers.  A timer greater than 60 seconds is in most times sufficient.'
+          end
           c.twitter = config['plugin']['twitter']
 
           c.plugins.prefix = /^#{Regexp.escape(config['prefix'])}/
