@@ -1,0 +1,14 @@
+inherit_from:
+  - rubocop_disabled.yaml
+
+AllCops:
+  DisplayCopNames: true
+
+Metrics/LineLength:
+  Max: 160
+
+Style/CaseIndentation:
+  IndentOneStep: true
+
+Metrics/ClassLength:
+  Max: 250

@@ -1,0 +1,36 @@
+irc:
+  server: "irc.example.org"
+  server_password:
+  port: 6697
+  ssl: true
+  ssl_verify: false
+  bind:
+  umodes:
+
+  realname: "Twitter Announce Bot"
+  username: "twitbot"
+  nick: "TwitterAnnouncer"
+
+  auth:
+    cert:
+      client_cert:
+
+    sasl:
+      account:
+      password:
+
+  announce_separator: "|"
+  announce:
+    - "#twitter|Twitter"
+
+plugin:
+  twitter:
+    timer: 180
+    consumer_key: "Your_Consumer_Key"
+    consumer_secret: "Your_Consumer_Secret"
+    access_token: "Your_Access_Token"
+    access_token_secret: "Your_Access_Token_Secret"
+
+logging: true
+prefix: "!"
+source_url: "https://github.com/zarthus/irc-twitter-bot/"
