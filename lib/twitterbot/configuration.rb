@@ -50,7 +50,7 @@ module TwitterBot
           tracking.each do |s|
             split = s.split(c.announce_separator)
             chan = split[0].downcase
-            twitter = split[1]
+            twitter = split[1].downcase
 
             c.channels << chan
             c.twitter_accounts << twitter
@@ -65,6 +65,11 @@ module TwitterBot
           if config['plugin']['twitter']['timer'] < 60
             warn 'Please don\'t flood Twitter servers.  A timer greater than 60 seconds is in most times sufficient.'
           end
+
+          if config['plugin']['twitter']['consumer_key'] == 'Your_Consumer_Key'
+            fatal 'You have not edited the Twitter Plugin configuration.'
+          end
+
           c.twitter = config['plugin']['twitter']
 
           c.plugins.prefix = /^#{Regexp.escape(config['prefix'])}/
@@ -74,6 +79,7 @@ module TwitterBot
 
           alt_storage = File.join(Dir.back(c.root, 2), 'storage')
           c.storage = File.join(config['storage_path'] || alt_storage)
+          c.logging = config['logging']
         end
       end
     end

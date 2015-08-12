@@ -1,6 +1,4 @@
 require 'cinch'
-require 'date'
-require 'digest'
 require 'time'
 require 'twitter'
 require 'yaml'

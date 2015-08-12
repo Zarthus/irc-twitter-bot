@@ -1,6 +1,7 @@
 module TwitterBot
   module Plugin
     class TwitterAnnouncer
+      TWITTER_NAME_REGEXP = '^[a-zA-Z_0-9]{1,15}$'
       include Cinch::Plugin
 
       def initialize(*args)
@@ -29,7 +30,7 @@ module TwitterBot
         check_tweets(true)
       end
 
-      match Regexp.new('tw(?:eet)?check ([a-z]+)$'), method: :announce
+      match Regexp.new('tw(?:eet)?check ([a-zA-Z]+)$'), method: :announce
       def announce(m, option)
         option.downcase!
 
@@ -40,19 +41,9 @@ module TwitterBot
 
         case option
           when 'on'
-            if announcing?(m.channel.name.downcase)
-              m.reply('I am already announcing to this channel!')
-            else
-              @enabled << m.channel.name.downcase
-              m.reply("I am now announcing to #{m.channel.name}, until I am restarted, or this option is toggled off.")
-            end
+            enable(m, true)
           when 'off'
-            if announcing?(m.channel.name.downcase)
-              @enabled.delete(m.channel.name.downcase)
-              m.reply("No longer announcing to #{m.channel.name}, until I am restarted, or this option is toggled back on.")
-            else
-              m.reply('I am already not announcing to this channel!')
-            end
+            enable(m, false)
           when 'status'
             status = announcing?(m.channel.name) ? 'Announcing new tweets.' : 'Not announcing.'
 
@@ -74,9 +65,45 @@ module TwitterBot
         end
       end
 
-      match Regexp.new('tw(?:eet)? ([^ ]+)'), method: :check_tweet
-      def check_tweet(m, account)
-        tweets = get_tweets(account)
+      match Regexp.new('tw(?:eet)?list ([a-zA-Z]+)(?: ([^ ]+))?$'), method: :twlist
+      def twlist(m, option, param)
+        return m.user.notice('You are not authorized to use this command!') unless m.channel.opped?(m.user)
+        option.downcase!
+        param = (param.nil? ? '' : param.downcase)
+        chan = m.channel.name.downcase
+
+        if !param.empty? && !valid_twitter_account?(param)
+          return m.reply("The Account [#{param}] is not a valid Twitter account.")
+        end
+        param = 'help' if param.empty?
+
+        case option
+          when 'add'
+            if @bot.config.twitmap[chan].include?(param)
+              m.reply("I am already watching for activity from #{param}!")
+            else
+              @bot.config.twitmap[chan] << param
+              m.reply("The Account [#{param}] is now being watched for activity. until I am restarted.")
+            end
+          when 'del'
+          when 'delete'
+            if @bot.config.twitmap[chan].include?(param)
+              @bot.config.twitmap[chan].delete(param)
+              m.reply("The Account [#{param}] is no longer being watched for activity. until I am restarted.")
+            else
+              m.reply("I am not watching #{param} for activity!")
+            end
+          when 'help'
+            m.reply('Options: add <account>, del <account>')
+          else
+            m.reply("Option [#{option}] not understood. Options: add <account>, del <account>")
+        end
+      end
+
+      match Regexp.new('tw(?:eet)? ([^ ]+)(?: (\d))?'), method: :check_tweet
+      def check_tweet(m, account, amount = 1)
+        amount = 1 if amount < 1 && amount > 3
+        tweets = get_tweets(account, amount)
 
         return m.reply("Sorry, but #{account} has no public tweets.") unless tweets
 
@@ -108,8 +135,8 @@ module TwitterBot
               accounts.each do |account|
                 next unless tweet[:account].downcase == account.downcase
 
-                history << sha2(tweet[:account] + tweet[:tweet] + chan)
-                next if announced?(tweet[:account], tweet[:tweet], chan)
+                history << chan.to_s + tweet[:id].to_s
+                next if announced?(chan, tweet[:id])
 
                 Channel(chan).send(fmt_tweet(tweet)) unless dry_run
               end
@@ -120,14 +147,14 @@ module TwitterBot
         @history = history
       end
 
-      def get_tweets(account, amount = 1)
+      def get_tweets(account, amount = 3)
         tweets = []
 
         begin
           @twitter.user_timeline(account, count: amount).each do |tweet|
             name = tweet.user.screen_name
 
-            tweets << { account: name, tweet: tweet.text, time: tweet.created_at, uri: tweet.uri.to_s }
+            tweets << { account: name, tweet: tweet.text, time: tweet.created_at, uri: tweet.uri.to_s, id: tweet.id }
           end
         rescue StandardError => e
           warn "Unable to retrieve Tweet information for #{account}: #{e}"
@@ -137,20 +164,24 @@ module TwitterBot
         tweets
       end
 
-      def announced?(account, tweet, channel = nil)
-        if channel
-          return @history.include?(sha2(account + tweet + channel.to_s))
+      def enable(m, option)
+        chan = m.channel.name.downcase
+
+        if option
+          if announcing?(chan)
+            m.reply('I am already announcing to this channel!')
+          else
+            @enabled << chan
+            m.reply("I am now announcing to #{m.channel.name}, until I am restarted, or this option is toggled off.")
+          end
+        else
+          if announcing?(chan)
+            @enabled.delete(chan)
+            m.reply("No longer announcing to #{m.channel.name}, until I am restarted, or this option is toggled back on.")
+          else
+            m.reply('I am already not announcing to this channel!')
+          end
         end
-
-        @history.include?(sha2(account + tweet))
-      end
-
-      def announcing?(channel)
-        @enabled.include?(channel.downcase)
-      end
-
-      def sha2(string)
-        Digest::SHA2.hexdigest(string)
       end
 
       def fmt_tweet(tweetinfo)
@@ -188,16 +219,31 @@ module TwitterBot
         t.to_datetime.strftime('%Y-%m-%d %H:%M:%S%Z')
       end
 
+      def announced?(channel, id)
+        @history.include?(channel.to_s + id.to_s)
+      end
+
+      def announcing?(channel)
+        @enabled.include?(channel.downcase)
+      end
+
       def check_config?
         twconf = @bot.config.twitter
 
         keys = %w(consumer_key consumer_secret access_token access_token_secret)
-
         keys.each do |k|
-          return false if !twconf.key?(k) || twconf.key?(k) && twconf[k].to_s.empty?
+          return false if !twconf.key?(k) ||
+                          (twconf.key?(k) && twconf[k].to_s.empty?) ||
+                          twconf[k].start_with?('Your_')
         end
 
         true
+      end
+
+      def valid_twitter_account?(account)
+        account[0] = '' if account.start_with?('@')
+
+        /#{TWITTER_NAME_REGEXP}/.match(account) != nil
       end
     end
   end
