@@ -85,8 +85,7 @@ module TwitterBot
               @bot.config.twitmap[chan] << param
               m.reply("The Account [#{param}] is now being watched for activity. until I am restarted.")
             end
-          when 'del'
-          when 'delete'
+          when 'del', 'delete'
             if @bot.config.twitmap[chan].include?(param)
               @bot.config.twitmap[chan].delete(param)
               m.reply("The Account [#{param}] is no longer being watched for activity. until I am restarted.")
