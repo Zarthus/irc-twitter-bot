@@ -152,8 +152,9 @@ module TwitterBot
         begin
           @twitter.user_timeline(account, count: amount).each do |tweet|
             name = tweet.user.screen_name
+            twtext = tweet.text.gsub("\r?\n", '.  ')
 
-            tweets << { account: name, tweet: tweet.text, time: tweet.created_at, uri: tweet.uri.to_s, id: tweet.id }
+            tweets << { account: name, tweet: twtext, time: tweet.created_at, uri: tweet.uri.to_s, id: tweet.id }
           end
         rescue StandardError => e
           warn "Unable to retrieve Tweet information for #{account}: #{e}"
