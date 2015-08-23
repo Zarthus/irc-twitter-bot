@@ -101,7 +101,7 @@ module TwitterBot
 
       match Regexp.new('tw(?:eet)? ([^ ]+)(?: (\d))?'), method: :check_tweet
       def check_tweet(m, account, amount = 1)
-        amount = 1 if amount < 1 && amount > 3
+        amount = 1 if amount.nil? or amount.to_i < 1 && amount.to_i > 3
         tweets = get_tweets(account, amount)
 
         return m.reply("Sorry, but #{account} has no public tweets.") unless tweets
