@@ -17,7 +17,7 @@ module TwitterBot
           config.access_token_secret = tw['access_token_secret']
         end
 
-        @format = Format(:bold, '%{account}') + ': "%{tweet}" ' + Format(:italic, '(%{time})') + ' at %{uri}'
+        @format = Format(:bold, '%{account}') + ': "%{tweet}" (%{time}) at %{uri}'
         @timer = Timer(tw['timer'] || 300, method: :check_tweets)
         @history = []
         @enabled = []
