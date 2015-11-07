@@ -138,7 +138,7 @@ module TwitterBot
                 history << chan.to_s + tweet[:id].to_s
                 next if announced?(chan, tweet[:id])
 
-                Channel(chan).send(fmt_tweet(tweet)) unless dry_run || is_old?(tweet[:time])
+                Channel(chan).send(fmt_tweet(tweet)) unless dry_run || old?(tweet[:time])
               end
             end
           end
@@ -220,8 +220,8 @@ module TwitterBot
         t.to_datetime.strftime('%Y-%m-%d %H:%M:%S%Z')
       end
 
-      def is_old?(time, max_age = 3600)
-        @ignore_old && Time.now.to_i - Time.at(time) > max_age
+      def old?(time, max_age = 3600)
+        @ignore_old && Time.now.to_i - Time.at(time).to_i > max_age
       end
 
       def announced?(channel, id)
