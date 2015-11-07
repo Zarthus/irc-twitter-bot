@@ -24,6 +24,7 @@ plugin.twitter.consumer_key: String, Your Twitter API consumer key
 plugin.twitter.consumer_secret: String, Your Twitter API consumer secret
 plugin.twitter.access_token: String, Your Twitter API access token
 plugin.twitter.access_token_secret: String, Your Twitter API access token secret
+plugin.twitter.ignore_old_tweets: Boolean, implements a workaround for the bug where old tweets removed from the history due to history limits get shown again.
 
 logging: Boolean, log to file or not?
 prefix: String char, what is the prefix to our commands?

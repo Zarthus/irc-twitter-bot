@@ -19,6 +19,7 @@ module TwitterBot
 
         @format = Format(:bold, '%{account}') + ': "%{tweet}" (%{time}) at %{uri}'
         @timer = Timer(tw['timer'] || 300, method: :check_tweets)
+        @ignore_old = tw['ignore_old_tweets']
         @history = []
         @enabled = []
 
@@ -83,12 +84,12 @@ module TwitterBot
               m.reply("I am already watching for activity from #{param}!")
             else
               @bot.config.twitmap[chan] << param
-              m.reply("The Account [#{param}] is now being watched for activity. until I am restarted.")
+              m.reply("The account [#{param}] is now being watched for activity. until I am restarted.")
             end
           when 'del', 'delete'
             if @bot.config.twitmap[chan].include?(param)
               @bot.config.twitmap[chan].delete(param)
-              m.reply("The Account [#{param}] is no longer being watched for activity. until I am restarted.")
+              m.reply("The account [#{param}] is no longer being watched for activity. until I am restarted.")
             else
               m.reply("I am not watching #{param} for activity!")
             end
@@ -137,7 +138,7 @@ module TwitterBot
                 history << chan.to_s + tweet[:id].to_s
                 next if announced?(chan, tweet[:id])
 
-                Channel(chan).send(fmt_tweet(tweet)) unless dry_run
+                Channel(chan).send(fmt_tweet(tweet)) unless dry_run || is_old?(tweet[:time])
               end
             end
           end
@@ -217,6 +218,10 @@ module TwitterBot
         end
 
         t.to_datetime.strftime('%Y-%m-%d %H:%M:%S%Z')
+      end
+
+      def is_old?(time, max_age = 3600)
+        @ignore_old && Time.now.to_i - Time.at(time) > max_age
       end
 
       def announced?(channel, id)

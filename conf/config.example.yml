@@ -30,6 +30,7 @@ plugin:
     consumer_secret: "Your_Consumer_Secret"
     access_token: "Your_Access_Token"
     access_token_secret: "Your_Access_Token_Secret"
+    ignore_old_tweets: true
 
 logging: true
 prefix: "!"
