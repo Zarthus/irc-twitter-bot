@@ -17,7 +17,7 @@ module TwitterBot
           config.access_token_secret = tw['access_token_secret']
         end
 
-        @format = Format(:bold, '%{account}') + ': "%{tweet}" (%{time}) at %{uri}'
+        @format = Format(:bold, '%{account}') + ': "%{tweet}" (%{time}) at %{uri} %{attribute}'
         @timer = Timer(tw['timer'] || 300, method: :check_tweets)
         @ignore_old = tw['ignore_old_tweets']
         @history = []
@@ -154,8 +154,9 @@ module TwitterBot
           @twitter.user_timeline(account, count: amount).each do |tweet|
             name = tweet.user.screen_name
             twtext = tweet.text.gsub(/\r?\n/, '  ')
+            attr = tweet.reply? ? 'reply' : 'tweet'
 
-            tweets << { account: name, tweet: twtext, time: tweet.created_at, uri: tweet.uri.to_s, id: tweet.id }
+            tweets << { account: name, tweet: twtext, time: tweet.created_at, uri: tweet.uri.to_s, id: tweet.id, attribute: attr }
           end
         rescue StandardError => e
           warn "Unable to retrieve Tweet information for #{account}: #{e}"
@@ -190,14 +191,17 @@ module TwitterBot
         tweet = tweetinfo[:tweet]
         time = fmt_time(tweetinfo[:time])
         uri = tweetinfo[:uri]
+        attr = fmt_attribute(tweetinfo[:attribute])
 
-        @format % { account: account, tweet: tweet, time: time, uri: uri }
+        @format % { account: account, tweet: tweet, time: time, uri: uri, attribute: attr }
       end
 
       def fmt_account(s)
-        s = '@' + s unless s.start_with?('@')
+        '@' + s unless s.start_with?('@')
+      end
 
-        s
+      def fmt_attribute(s)
+        '!att-' + s.to_s
       end
 
       def fmt_time(s)
