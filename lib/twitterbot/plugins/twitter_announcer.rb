@@ -197,7 +197,7 @@ module TwitterBot
       end
 
       def fmt_account(s)
-        '@' + s unless s.start_with?('@')
+        s.start_with?('@') ? s : '@' + s
       end
 
       def fmt_attribute(s)
