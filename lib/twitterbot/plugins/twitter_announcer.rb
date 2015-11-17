@@ -154,7 +154,7 @@ module TwitterBot
           @twitter.user_timeline(account, count: amount).each do |tweet|
             name = tweet.user.screen_name
             twtext = tweet.text.gsub(/\r?\n/, '  ')
-            attr = tweet.reply? ? 'reply' : 'tweet'
+            attr = tweet.reply? ? 'reply' : tweet.retweet? ? 'retweet' : 'tweet'
 
             tweets << { account: name, tweet: twtext, time: tweet.created_at, uri: tweet.uri.to_s, id: tweet.id, attribute: attr }
           end
