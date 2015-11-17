@@ -27,3 +27,6 @@ Style/EndOfLine:
 
 Style/Next:
   Enabled: false
+
+Style/NestedTernaryOperator:
+  Enabled: false
