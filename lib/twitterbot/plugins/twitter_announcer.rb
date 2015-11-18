@@ -20,9 +20,10 @@ module TwitterBot
         @format = Format(:bold, '%{account}') + ': "%{tweet}" (%{time}) at %{uri} %{attribute}'
         @timer = Timer(tw['timer'] || 300, method: :check_tweets)
         @ignore_old = tw['ignore_old_tweets']
+        @ignored_attributes = tw['ignore_attributes'] ? tw['ignore_attributes'].to_a : false
+
         @history = []
         @enabled = []
-
         @bot.config.twitmap.each do |chan, _account|
           @enabled << chan.downcase
         end
@@ -156,7 +157,10 @@ module TwitterBot
             twtext = tweet.text.gsub(/\r?\n/, '  ')
             attr = tweet.reply? ? 'reply' : tweet.retweet? ? 'retweet' : 'tweet'
 
-            tweets << { account: name, tweet: twtext, time: tweet.created_at, uri: tweet.uri.to_s, id: tweet.id, attribute: attr }
+            unless attribute_ignored?(attr)
+              tweets << { account: name, tweet: twtext, time: tweet.created_at,
+                          uri: tweet.uri.to_s, id: tweet.id, attribute: attr }
+            end
           end
         rescue StandardError => e
           warn "Unable to retrieve Tweet information for #{account}: #{e}"
@@ -234,6 +238,10 @@ module TwitterBot
 
       def announcing?(channel)
         @enabled.include?(channel.downcase)
+      end
+
+      def attribute_ignored?(attribute)
+        @ignored_attributes != false && @ignored_attributes.include?(attribute)
       end
 
       def check_config?

@@ -31,6 +31,7 @@ plugin:
     access_token: "Your_Access_Token"
     access_token_secret: "Your_Access_Token_Secret"
     ignore_old_tweets: true
+    ignore_attributes:
 
 logging: true
 prefix: "!"
