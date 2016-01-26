@@ -8,6 +8,10 @@ rvm:
   - 2.2.0
   - ruby-head
 
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+
 sudo: false
 
 before_script:
