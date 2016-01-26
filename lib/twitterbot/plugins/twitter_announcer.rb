@@ -30,7 +30,7 @@ module TwitterBot
           @enabled << chan.downcase
         end
 
-	@htmlentities = HTMLEntities.new
+        @htmlentities = HTMLEntities.new
 
         # Cache tweets that have already happened. Avoid broadcasting them to the channel each reboot.
         check_tweets(true)
