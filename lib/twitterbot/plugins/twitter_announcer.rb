@@ -1,3 +1,5 @@
+require 'htmlentities'
+
 module TwitterBot
   module Plugin
     class TwitterAnnouncer
@@ -27,6 +29,8 @@ module TwitterBot
         @bot.config.twitmap.each do |chan, _account|
           @enabled << chan.downcase
         end
+
+	@htmlentities = HTMLEntities.new
 
         # Cache tweets that have already happened. Avoid broadcasting them to the channel each reboot.
         check_tweets(true)
@@ -192,7 +196,7 @@ module TwitterBot
 
       def fmt_tweet(tweetinfo)
         account = fmt_account(tweetinfo[:account])
-        tweet = tweetinfo[:tweet]
+        tweet = @htmlentities.decode(tweetinfo[:tweet])
         time = fmt_time(tweetinfo[:time])
         uri = tweetinfo[:uri]
         attr = fmt_attribute(tweetinfo[:attribute])
